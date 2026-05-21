@@ -1,0 +1,1185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Inkwell — Modern Blog Platform</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #0d0d0d;
+    --paper: #f8f4ef;
+    --cream: #ede8e0;
+    --rust: #c4450a;
+    --rust-light: #e8532a;
+    --gold: #c89b3c;
+    --muted: #8a8278;
+    --border: #d4cdc4;
+    --white: #ffffff;
+    --shadow: 0 4px 24px rgba(13,13,13,0.08);
+    --shadow-lg: 0 12px 48px rgba(13,13,13,0.16);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--paper);
+    color: var(--ink);
+    min-height: 100vh;
+    line-height: 1.6;
+  }
+
+  /* ── HEADER ── */
+  header {
+    background: var(--ink);
+    color: var(--paper);
+    padding: 0 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 64px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    border-bottom: 2px solid var(--rust);
+  }
+
+  .logo {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.6rem;
+    font-weight: 900;
+    color: var(--paper);
+    letter-spacing: -0.02em;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .logo span { color: var(--rust); }
+
+  nav { display: flex; gap: 8px; align-items: center; }
+
+  .btn {
+    padding: 8px 20px;
+    border-radius: 4px;
+    border: none;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: 0.01em;
+  }
+  .btn-ghost {
+    background: transparent;
+    color: var(--paper);
+    border: 1px solid rgba(248,244,239,0.3);
+  }
+  .btn-ghost:hover { background: rgba(248,244,239,0.1); border-color: var(--paper); }
+  .btn-primary {
+    background: var(--rust);
+    color: var(--white);
+  }
+  .btn-primary:hover { background: var(--rust-light); transform: translateY(-1px); }
+  .btn-secondary {
+    background: var(--cream);
+    color: var(--ink);
+    border: 1px solid var(--border);
+  }
+  .btn-secondary:hover { background: var(--border); }
+  .btn-danger {
+    background: transparent;
+    color: #c0392b;
+    border: 1px solid #c0392b;
+    padding: 5px 12px;
+    font-size: 0.8rem;
+  }
+  .btn-danger:hover { background: #c0392b; color: white; }
+  .btn-sm { padding: 5px 14px; font-size: 0.8rem; }
+
+  .user-pill {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--paper);
+    font-size: 0.875rem;
+  }
+  .avatar {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    background: var(--rust);
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700;
+    font-size: 0.8rem;
+    color: white;
+  }
+
+  /* ── PAGES ── */
+  .page { display: none; }
+  .page.active { display: block; }
+
+  /* ── AUTH MODAL ── */
+  .modal-overlay {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(13,13,13,0.6);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(4px);
+  }
+  .modal-overlay.open { display: flex; }
+
+  .modal {
+    background: var(--white);
+    border-radius: 12px;
+    padding: 40px;
+    width: 100%; max-width: 420px;
+    box-shadow: var(--shadow-lg);
+    animation: slideUp 0.3s ease;
+  }
+  @keyframes slideUp {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+
+  .modal h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.8rem;
+    margin-bottom: 6px;
+    color: var(--ink);
+  }
+  .modal p.sub { color: var(--muted); font-size: 0.875rem; margin-bottom: 28px; }
+
+  .form-group { margin-bottom: 18px; }
+  .form-group label {
+    display: block;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 6px;
+  }
+  .form-group input, .form-group textarea, .form-group select {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1.5px solid var(--border);
+    border-radius: 6px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.95rem;
+    color: var(--ink);
+    background: var(--paper);
+    transition: border-color 0.2s;
+    outline: none;
+  }
+  .form-group input:focus, .form-group textarea:focus {
+    border-color: var(--rust);
+    background: var(--white);
+  }
+  .form-group textarea { resize: vertical; min-height: 120px; }
+
+  .form-switch {
+    text-align: center;
+    margin-top: 20px;
+    font-size: 0.875rem;
+    color: var(--muted);
+  }
+  .form-switch a { color: var(--rust); cursor: pointer; font-weight: 500; }
+  .form-switch a:hover { text-decoration: underline; }
+
+  .error-msg {
+    background: #fdf0ee;
+    color: #c0392b;
+    border: 1px solid #f5c6c1;
+    padding: 10px 14px;
+    border-radius: 6px;
+    font-size: 0.875rem;
+    margin-bottom: 16px;
+    display: none;
+  }
+  .error-msg.show { display: block; }
+
+  /* ── HERO / HOME ── */
+  .hero {
+    background: var(--ink);
+    color: var(--paper);
+    padding: 80px 40px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse at 60% 50%, rgba(196,69,10,0.15) 0%, transparent 70%);
+  }
+  .hero h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2.5rem, 6vw, 4.5rem);
+    font-weight: 900;
+    line-height: 1.1;
+    position: relative;
+    margin-bottom: 16px;
+  }
+  .hero h1 em { color: var(--rust); font-style: italic; }
+  .hero p {
+    font-size: 1.1rem;
+    color: rgba(248,244,239,0.7);
+    max-width: 500px;
+    margin: 0 auto 32px;
+    position: relative;
+  }
+  .hero-btns { display: flex; gap: 12px; justify-content: center; position: relative; }
+
+  /* ── FEED ── */
+  .feed-header {
+    padding: 40px 40px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--border);
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+  .feed-header h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.6rem;
+  }
+
+  .posts-grid {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 32px 40px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 28px;
+  }
+
+  .post-card {
+    background: var(--white);
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    overflow: hidden;
+    transition: transform 0.2s, box-shadow 0.2s;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+  }
+  .post-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+  }
+
+  .post-card-header {
+    background: linear-gradient(135deg, var(--ink) 0%, #2a2520 100%);
+    padding: 24px;
+    min-height: 120px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    position: relative;
+  }
+  .post-card-header::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(circle at 80% 20%, rgba(196,69,10,0.3) 0%, transparent 60%);
+  }
+
+  .post-tag {
+    display: inline-block;
+    padding: 3px 10px;
+    background: var(--rust);
+    color: white;
+    border-radius: 3px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 8px;
+    width: fit-content;
+    position: relative;
+  }
+  .post-card-header h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.2rem;
+    color: var(--paper);
+    line-height: 1.3;
+    position: relative;
+  }
+
+  .post-card-body { padding: 20px; flex: 1; }
+  .post-excerpt {
+    color: var(--muted);
+    font-size: 0.875rem;
+    line-height: 1.6;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    margin-bottom: 16px;
+  }
+
+  .post-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 0.78rem;
+    color: var(--muted);
+  }
+  .post-meta-left { display: flex; align-items: center; gap: 8px; }
+  .meta-avatar {
+    width: 24px; height: 24px;
+    border-radius: 50%;
+    background: var(--cream);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.65rem;
+    font-weight: 700;
+    color: var(--rust);
+    border: 1px solid var(--border);
+  }
+  .post-actions { display: flex; gap: 6px; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--cream); }
+
+  .comment-count {
+    display: flex; align-items: center; gap: 4px;
+    font-size: 0.78rem; color: var(--muted);
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 80px 40px;
+    color: var(--muted);
+  }
+  .empty-state .icon { font-size: 3rem; margin-bottom: 16px; }
+  .empty-state h3 { font-family: 'Playfair Display', serif; font-size: 1.4rem; color: var(--ink); margin-bottom: 8px; }
+
+  /* ── POST DETAIL ── */
+  .post-detail { max-width: 760px; margin: 0 auto; padding: 48px 40px; }
+  .post-detail-back {
+    display: inline-flex; align-items: center; gap: 6px;
+    color: var(--muted); font-size: 0.875rem; cursor: pointer;
+    margin-bottom: 32px; transition: color 0.2s;
+  }
+  .post-detail-back:hover { color: var(--rust); }
+
+  .post-detail h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(1.8rem, 4vw, 2.8rem);
+    line-height: 1.2;
+    margin-bottom: 20px;
+  }
+  .post-detail-meta {
+    display: flex; align-items: center; gap: 16px;
+    padding: 16px 0;
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 32px;
+    font-size: 0.875rem;
+    color: var(--muted);
+  }
+  .post-detail-meta .avatar { width: 36px; height: 36px; font-size: 0.875rem; }
+  .post-detail-meta .author-name { font-weight: 600; color: var(--ink); }
+
+  .post-body {
+    font-size: 1.05rem;
+    line-height: 1.8;
+    color: #2a2520;
+    white-space: pre-wrap;
+    margin-bottom: 48px;
+  }
+
+  .post-detail-actions {
+    display: flex; gap: 10px;
+    margin-bottom: 48px;
+    padding-bottom: 32px;
+    border-bottom: 2px solid var(--border);
+  }
+
+  /* ── COMMENTS ── */
+  .comments-section h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.4rem;
+    margin-bottom: 24px;
+  }
+
+  .comment-form { background: var(--cream); border-radius: 10px; padding: 20px; margin-bottom: 32px; }
+  .comment-form h4 { font-size: 0.875rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 12px; }
+
+  .comment-list { display: flex; flex-direction: column; gap: 16px; }
+  .comment-item {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px 20px;
+    animation: fadeIn 0.3s ease;
+  }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+  .comment-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 8px;
+  }
+  .comment-author { display: flex; align-items: center; gap: 8px; }
+  .comment-author-name { font-weight: 600; font-size: 0.9rem; }
+  .comment-date { font-size: 0.75rem; color: var(--muted); }
+  .comment-body { font-size: 0.9rem; color: #3a3530; line-height: 1.6; }
+  .comment-delete { font-size: 0.75rem; color: var(--muted); cursor: pointer; transition: color 0.2s; background: none; border: none; }
+  .comment-delete:hover { color: #c0392b; }
+
+  /* ── CREATE/EDIT POST ── */
+  .editor-wrap {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 48px 40px;
+  }
+  .editor-wrap h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 2rem;
+    margin-bottom: 32px;
+  }
+
+  .editor-form { display: flex; flex-direction: column; gap: 20px; }
+  .editor-form .form-group input[type="text"],
+  .editor-form .form-group textarea {
+    background: var(--white);
+  }
+  .editor-form textarea { min-height: 300px; font-size: 1rem; line-height: 1.7; }
+  .editor-btns { display: flex; gap: 12px; margin-top: 8px; }
+
+  /* ── PROFILE ── */
+  .profile-wrap {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 48px 40px;
+  }
+  .profile-header {
+    display: flex; align-items: center; gap: 24px;
+    padding-bottom: 32px;
+    margin-bottom: 32px;
+    border-bottom: 1px solid var(--border);
+  }
+  .profile-avatar {
+    width: 72px; height: 72px;
+    border-radius: 50%;
+    background: var(--rust);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Playfair Display', serif;
+    font-size: 1.8rem;
+    color: white;
+    font-weight: 700;
+  }
+  .profile-info h2 { font-family: 'Playfair Display', serif; font-size: 1.8rem; }
+  .profile-info p { color: var(--muted); font-size: 0.875rem; margin-top: 4px; }
+  .profile-stats { display: flex; gap: 32px; margin-top: 12px; }
+  .stat { text-align: center; }
+  .stat .num { font-family: 'DM Mono', monospace; font-size: 1.4rem; font-weight: 500; color: var(--ink); }
+  .stat .lbl { font-size: 0.75rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
+
+  .profile-posts h3 { font-family: 'Playfair Display', serif; font-size: 1.3rem; margin-bottom: 20px; }
+  .profile-post-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px;
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    margin-bottom: 10px;
+    transition: border-color 0.2s;
+  }
+  .profile-post-row:hover { border-color: var(--rust); }
+  .profile-post-title { font-weight: 600; font-size: 0.95rem; cursor: pointer; }
+  .profile-post-title:hover { color: var(--rust); }
+  .profile-post-date { font-size: 0.78rem; color: var(--muted); margin-top: 2px; }
+  .profile-post-actions { display: flex; gap: 6px; }
+
+  /* ── TOAST ── */
+  .toast {
+    position: fixed;
+    bottom: 32px; right: 32px;
+    background: var(--ink);
+    color: var(--paper);
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    box-shadow: var(--shadow-lg);
+    transform: translateY(20px);
+    opacity: 0;
+    transition: all 0.3s;
+    z-index: 300;
+    border-left: 3px solid var(--rust);
+  }
+  .toast.show { transform: translateY(0); opacity: 1; }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 640px) {
+    header { padding: 0 16px; }
+    .hero { padding: 48px 20px; }
+    .feed-header, .posts-grid { padding-left: 16px; padding-right: 16px; }
+    .posts-grid { grid-template-columns: 1fr; }
+    .post-detail, .editor-wrap, .profile-wrap { padding: 32px 16px; }
+  }
+
+  .divider {
+    height: 1px;
+    background: linear-gradient(to right, transparent, var(--border), transparent);
+    margin: 12px 0;
+  }
+
+  .tag-chip {
+    display: inline-block;
+    padding: 3px 10px;
+    background: var(--cream);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    font-size: 0.75rem;
+    color: var(--muted);
+    font-weight: 500;
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="logo">Ink<span>well</span></div>
+  <nav id="navBar">
+    <button class="btn btn-ghost" onclick="showAuthModal('login')">Sign In</button>
+    <button class="btn btn-primary" onclick="showAuthModal('register')">Join Free</button>
+  </nav>
+</header>
+
+<!-- AUTH MODAL -->
+<div class="modal-overlay" id="authModal">
+  <div class="modal">
+    <div id="loginForm">
+      <h2>Welcome back</h2>
+      <p class="sub">Sign in to your Inkwell account</p>
+      <div class="error-msg" id="loginError"></div>
+      <div class="form-group">
+        <label>Username</label>
+        <input type="text" id="loginUsername" placeholder="your_username" autocomplete="off">
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="loginPassword" placeholder="••••••••">
+      </div>
+      <button class="btn btn-primary" style="width:100%;padding:12px" onclick="doLogin()">Sign In</button>
+      <div class="form-switch">Don't have an account? <a onclick="toggleAuthForm('register')">Create one</a></div>
+    </div>
+    <div id="registerForm" style="display:none">
+      <h2>Join Inkwell</h2>
+      <p class="sub">Create your free account and start writing</p>
+      <div class="error-msg" id="registerError"></div>
+      <div class="form-group">
+        <label>Display Name</label>
+        <input type="text" id="regName" placeholder="Jane Doe">
+      </div>
+      <div class="form-group">
+        <label>Username</label>
+        <input type="text" id="regUsername" placeholder="jane_doe">
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="regPassword" placeholder="min 6 characters">
+      </div>
+      <button class="btn btn-primary" style="width:100%;padding:12px" onclick="doRegister()">Create Account</button>
+      <div class="form-switch">Already have an account? <a onclick="toggleAuthForm('login')">Sign in</a></div>
+    </div>
+    <div style="text-align:center;margin-top:16px">
+      <button class="btn btn-ghost" style="color:#888;border-color:#ddd;font-size:0.8rem" onclick="closeAuthModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- HOME PAGE -->
+<div class="page active" id="pageHome">
+  <div class="hero">
+    <h1>Write. Share.<br><em>Inspire.</em></h1>
+    <p>A beautiful space for ideas, stories, and voices that matter.</p>
+    <div class="hero-btns">
+      <button class="btn btn-primary" onclick="showAuthModal('register')">Start Writing</button>
+      <button class="btn btn-ghost" onclick="scrollToFeed()">Read Stories</button>
+    </div>
+  </div>
+  <div id="feedSection">
+    <div class="feed-header">
+      <h2>Latest Stories</h2>
+      <span id="postCountBadge" class="tag-chip">0 posts</span>
+    </div>
+    <div class="posts-grid" id="postsFeed"></div>
+  </div>
+</div>
+
+<!-- FEED (logged in) PAGE -->
+<div class="page" id="pageFeed">
+  <div class="feed-header">
+    <h2>Your Feed</h2>
+    <button class="btn btn-primary" onclick="showPage('pageCreate')">✏️ New Post</button>
+  </div>
+  <div class="posts-grid" id="postsFeedAuth"></div>
+</div>
+
+<!-- POST DETAIL PAGE -->
+<div class="page" id="pageDetail">
+  <div class="post-detail">
+    <div class="post-detail-back" onclick="goBack()">← Back</div>
+    <div id="postDetailContent"></div>
+  </div>
+</div>
+
+<!-- CREATE POST PAGE -->
+<div class="page" id="pageCreate">
+  <div class="editor-wrap">
+    <h2>New Post</h2>
+    <div class="editor-form">
+      <div class="form-group">
+        <label>Title</label>
+        <input type="text" id="createTitle" placeholder="Give your post a compelling title…">
+      </div>
+      <div class="form-group">
+        <label>Category</label>
+        <select id="createCategory">
+          <option value="Essay">Essay</option>
+          <option value="Technology">Technology</option>
+          <option value="Culture">Culture</option>
+          <option value="Science">Science</option>
+          <option value="Personal">Personal</option>
+          <option value="Opinion">Opinion</option>
+          <option value="Fiction">Fiction</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Content</label>
+        <textarea id="createContent" placeholder="Write your story here…"></textarea>
+      </div>
+      <div class="editor-btns">
+        <button class="btn btn-primary" onclick="createPost()">Publish Post</button>
+        <button class="btn btn-secondary" onclick="goBack()">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- EDIT POST PAGE -->
+<div class="page" id="pageEdit">
+  <div class="editor-wrap">
+    <h2>Edit Post</h2>
+    <div class="editor-form">
+      <div class="form-group">
+        <label>Title</label>
+        <input type="text" id="editTitle">
+      </div>
+      <div class="form-group">
+        <label>Category</label>
+        <select id="editCategory">
+          <option value="Essay">Essay</option>
+          <option value="Technology">Technology</option>
+          <option value="Culture">Culture</option>
+          <option value="Science">Science</option>
+          <option value="Personal">Personal</option>
+          <option value="Opinion">Opinion</option>
+          <option value="Fiction">Fiction</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Content</label>
+        <textarea id="editContent" style="min-height:300px"></textarea>
+      </div>
+      <div class="editor-btns">
+        <button class="btn btn-primary" onclick="saveEdit()">Save Changes</button>
+        <button class="btn btn-secondary" onclick="goBack()">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PROFILE PAGE -->
+<div class="page" id="pageProfile">
+  <div class="profile-wrap" id="profileContent"></div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ══════════════════════════════════════════════
+//  DATABASE (localStorage as backend simulation)
+// ══════════════════════════════════════════════
+const DB = {
+  getUsers: () => JSON.parse(localStorage.getItem('inkwell_users') || '[]'),
+  saveUsers: (u) => localStorage.setItem('inkwell_users', JSON.stringify(u)),
+  getPosts: () => JSON.parse(localStorage.getItem('inkwell_posts') || '[]'),
+  savePosts: (p) => localStorage.setItem('inkwell_posts', JSON.stringify(p)),
+  getComments: () => JSON.parse(localStorage.getItem('inkwell_comments') || '[]'),
+  saveComments: (c) => localStorage.setItem('inkwell_comments', JSON.stringify(c)),
+  getSession: () => JSON.parse(localStorage.getItem('inkwell_session') || 'null'),
+  saveSession: (s) => localStorage.setItem('inkwell_session', JSON.stringify(s)),
+  clearSession: () => localStorage.removeItem('inkwell_session'),
+};
+
+// Seed sample posts
+function seedIfEmpty() {
+  const posts = DB.getPosts();
+  if (posts.length > 0) return;
+  const users = [
+    { id: 'u1', name: 'Eleanor Vance', username: 'eleanor', password: 'demo123' },
+    { id: 'u2', name: 'Marcus Webb', username: 'marcus', password: 'demo123' },
+  ];
+  if (DB.getUsers().length === 0) DB.saveUsers(users);
+  const samplePosts = [
+    { id: 'p1', title: 'The Art of Slow Thinking', category: 'Essay', content: 'In a world that prizes speed above all else, there is a quiet revolution happening in the minds of those who dare to think slowly.\n\nSlow thinking is not laziness. It is the deliberate practice of sitting with a problem, turning it over, examining it from every angle before rushing to a conclusion. It is the antidote to the reactive culture we have built.\n\nWhen we slow down our thinking, remarkable things happen. Connections emerge that were invisible at full speed. Assumptions reveal themselves for what they are — untested beliefs masquerading as facts.\n\nThe philosophers knew this. Descartes sat by his fire and doubted everything. Spinoza ground lenses by day and built ethics by night. They were not in a hurry, and the world is richer for it.', authorId: 'u1', authorName: 'Eleanor Vance', createdAt: new Date(Date.now() - 86400000 * 3).toISOString() },
+    { id: 'p2', title: 'Why Open Source Changed Everything', category: 'Technology', content: 'Before open source, software was a walled garden. Companies built code, locked it away, and charged handsomely for the keys.\n\nThen something extraordinary happened. Programmers around the world began sharing their work freely. Not out of naivety, but out of a deep conviction that knowledge multiplies when shared.\n\nLinux powers most of the internet. Python drives machine learning. Git underpins virtually all collaborative development. These tools are free — free as in speech, free as in beer.\n\nThe lesson is profound: when you remove artificial scarcity from knowledge, you create abundance. The open source movement did not just change software; it changed how we think about intellectual property, collaboration, and the nature of innovation itself.', authorId: 'u2', authorName: 'Marcus Webb', createdAt: new Date(Date.now() - 86400000).toISOString() },
+  ];
+  DB.savePosts(samplePosts);
+  const sampleComments = [
+    { id: 'c1', postId: 'p1', authorId: 'u2', authorName: 'Marcus Webb', body: 'This resonates deeply. I have started taking 10 minutes before any major decision. The difference is remarkable.', createdAt: new Date(Date.now() - 43200000).toISOString() },
+    { id: 'c2', postId: 'p2', authorId: 'u1', authorName: 'Eleanor Vance', body: 'The point about artificial scarcity is spot on. Information wants to be free — and thrives when it is.', createdAt: new Date(Date.now() - 21600000).toISOString() },
+  ];
+  DB.saveComments(sampleComments);
+}
+
+// ══════════════════════════════════════════════
+//  AUTH API
+// ══════════════════════════════════════════════
+let currentUser = null;
+let previousPage = 'pageHome';
+
+function initApp() {
+  seedIfEmpty();
+  const session = DB.getSession();
+  if (session) {
+    const users = DB.getUsers();
+    const user = users.find(u => u.id === session.id);
+    if (user) { currentUser = user; updateNavForUser(); }
+  }
+  renderHomeFeed();
+}
+
+function doRegister() {
+  const name = document.getElementById('regName').value.trim();
+  const username = document.getElementById('regUsername').value.trim().toLowerCase();
+  const password = document.getElementById('regPassword').value;
+  const err = document.getElementById('registerError');
+
+  if (!name || !username || !password) return showError(err, 'All fields are required.');
+  if (password.length < 6) return showError(err, 'Password must be at least 6 characters.');
+  if (!/^[a-z0-9_]+$/.test(username)) return showError(err, 'Username: letters, numbers, underscores only.');
+
+  const users = DB.getUsers();
+  if (users.find(u => u.username === username)) return showError(err, 'Username already taken.');
+
+  const user = { id: 'u' + Date.now(), name, username, password };
+  users.push(user);
+  DB.saveUsers(users);
+  currentUser = user;
+  DB.saveSession({ id: user.id });
+  closeAuthModal();
+  updateNavForUser();
+  showPage('pageFeed');
+  renderAuthFeed();
+  showToast('Welcome to Inkwell, ' + name + '! 🎉');
+}
+
+function doLogin() {
+  const username = document.getElementById('loginUsername').value.trim().toLowerCase();
+  const password = document.getElementById('loginPassword').value;
+  const err = document.getElementById('loginError');
+
+  if (!username || !password) return showError(err, 'Please enter your credentials.');
+
+  const users = DB.getUsers();
+  const user = users.find(u => u.username === username && u.password === password);
+  if (!user) return showError(err, 'Invalid username or password.');
+
+  currentUser = user;
+  DB.saveSession({ id: user.id });
+  closeAuthModal();
+  updateNavForUser();
+  showPage('pageFeed');
+  renderAuthFeed();
+  showToast('Welcome back, ' + user.name + '!');
+}
+
+function doLogout() {
+  currentUser = null;
+  DB.clearSession();
+  updateNavForGuest();
+  showPage('pageHome');
+  renderHomeFeed();
+  showToast('Signed out. See you next time!');
+}
+
+function updateNavForUser() {
+  document.getElementById('navBar').innerHTML = `
+    <button class="btn btn-ghost" onclick="showPage('pageFeed');renderAuthFeed()">Feed</button>
+    <button class="btn btn-ghost" onclick="showProfile()">Profile</button>
+    <div class="user-pill">
+      <div class="avatar">${currentUser.name[0].toUpperCase()}</div>
+      <span>${currentUser.name.split(' ')[0]}</span>
+    </div>
+    <button class="btn btn-secondary btn-sm" onclick="doLogout()">Sign Out</button>
+  `;
+}
+
+function updateNavForGuest() {
+  document.getElementById('navBar').innerHTML = `
+    <button class="btn btn-ghost" onclick="showAuthModal('login')">Sign In</button>
+    <button class="btn btn-primary" onclick="showAuthModal('register')">Join Free</button>
+  `;
+}
+
+// ══════════════════════════════════════════════
+//  POSTS API
+// ══════════════════════════════════════════════
+function createPost() {
+  if (!currentUser) return showAuthModal('login');
+  const title = document.getElementById('createTitle').value.trim();
+  const content = document.getElementById('createContent').value.trim();
+  const category = document.getElementById('createCategory').value;
+
+  if (!title || !content) return showToast('Title and content are required.');
+
+  const post = {
+    id: 'p' + Date.now(),
+    title, content, category,
+    authorId: currentUser.id,
+    authorName: currentUser.name,
+    createdAt: new Date().toISOString(),
+  };
+  const posts = DB.getPosts();
+  posts.unshift(post);
+  DB.savePosts(posts);
+  document.getElementById('createTitle').value = '';
+  document.getElementById('createContent').value = '';
+  showPage('pageDetail');
+  renderPostDetail(post.id);
+  showToast('Post published! ✨');
+}
+
+function deletePost(postId) {
+  if (!confirm('Delete this post?')) return;
+  let posts = DB.getPosts().filter(p => p.id !== postId);
+  DB.savePosts(posts);
+  let comments = DB.getComments().filter(c => c.postId !== postId);
+  DB.saveComments(comments);
+  showPage('pageFeed');
+  renderAuthFeed();
+  showToast('Post deleted.');
+}
+
+let editingPostId = null;
+function startEdit(postId) {
+  const posts = DB.getPosts();
+  const post = posts.find(p => p.id === postId);
+  if (!post) return;
+  editingPostId = postId;
+  document.getElementById('editTitle').value = post.title;
+  document.getElementById('editContent').value = post.content;
+  document.getElementById('editCategory').value = post.category || 'Essay';
+  showPage('pageEdit');
+}
+
+function saveEdit() {
+  const title = document.getElementById('editTitle').value.trim();
+  const content = document.getElementById('editContent').value.trim();
+  const category = document.getElementById('editCategory').value;
+  if (!title || !content) return showToast('Title and content are required.');
+
+  const posts = DB.getPosts();
+  const idx = posts.findIndex(p => p.id === editingPostId);
+  if (idx === -1) return;
+  posts[idx] = { ...posts[idx], title, content, category, updatedAt: new Date().toISOString() };
+  DB.savePosts(posts);
+  showPage('pageDetail');
+  renderPostDetail(editingPostId);
+  showToast('Post updated.');
+}
+
+// ══════════════════════════════════════════════
+//  COMMENTS API
+// ══════════════════════════════════════════════
+function addComment(postId) {
+  if (!currentUser) return showAuthModal('login');
+  const input = document.getElementById('commentInput');
+  const body = input.value.trim();
+  if (!body) return showToast('Comment cannot be empty.');
+
+  const comment = {
+    id: 'c' + Date.now(),
+    postId,
+    authorId: currentUser.id,
+    authorName: currentUser.name,
+    body,
+    createdAt: new Date().toISOString(),
+  };
+  const comments = DB.getComments();
+  comments.push(comment);
+  DB.saveComments(comments);
+  input.value = '';
+  renderComments(postId);
+  showToast('Comment added.');
+}
+
+function deleteComment(commentId, postId) {
+  let comments = DB.getComments().filter(c => c.id !== commentId);
+  DB.saveComments(comments);
+  renderComments(postId);
+  showToast('Comment deleted.');
+}
+
+function renderComments(postId) {
+  const comments = DB.getComments().filter(c => c.postId === postId);
+  const container = document.getElementById('commentList');
+  if (!container) return;
+
+  if (comments.length === 0) {
+    container.innerHTML = '<p style="color:var(--muted);font-size:0.875rem;text-align:center;padding:24px 0">No comments yet. Be the first!</p>';
+    return;
+  }
+
+  container.innerHTML = comments.map(c => `
+    <div class="comment-item">
+      <div class="comment-header">
+        <div class="comment-author">
+          <div class="avatar" style="width:28px;height:28px;font-size:0.7rem">${c.authorName[0]}</div>
+          <span class="comment-author-name">${esc(c.authorName)}</span>
+          <span class="comment-date">${timeAgo(c.createdAt)}</span>
+        </div>
+        ${currentUser && (c.authorId === currentUser.id) ? `<button class="comment-delete" onclick="deleteComment('${c.id}','${postId}')">✕ delete</button>` : ''}
+      </div>
+      <div class="comment-body">${esc(c.body)}</div>
+    </div>
+  `).join('');
+}
+
+// ══════════════════════════════════════════════
+//  RENDER
+// ══════════════════════════════════════════════
+function renderHomeFeed() {
+  const posts = DB.getPosts();
+  const comments = DB.getComments();
+  const el = document.getElementById('postsFeed');
+  document.getElementById('postCountBadge').textContent = posts.length + ' post' + (posts.length !== 1 ? 's' : '');
+
+  if (posts.length === 0) {
+    el.innerHTML = `<div class="empty-state" style="grid-column:1/-1">
+      <div class="icon">✍️</div>
+      <h3>No stories yet</h3>
+      <p>Be the first to write something.</p>
+    </div>`;
+    return;
+  }
+  el.innerHTML = posts.map(p => postCard(p, comments, false)).join('');
+}
+
+function renderAuthFeed() {
+  const posts = DB.getPosts();
+  const comments = DB.getComments();
+  const el = document.getElementById('postsFeedAuth');
+  if (!el) return;
+  if (posts.length === 0) {
+    el.innerHTML = `<div class="empty-state" style="grid-column:1/-1">
+      <div class="icon">📝</div>
+      <h3>Nothing here yet</h3>
+      <p>Click "New Post" to share your first story.</p>
+      <button class="btn btn-primary" style="margin-top:16px" onclick="showPage('pageCreate')">Write Now</button>
+    </div>`;
+    return;
+  }
+  el.innerHTML = posts.map(p => postCard(p, comments, true)).join('');
+}
+
+function postCard(p, allComments, isAuth) {
+  const count = allComments.filter(c => c.postId === p.id).length;
+  const isOwner = isAuth && currentUser && p.authorId === currentUser.id;
+  return `
+    <div class="post-card" onclick="openPost('${p.id}')">
+      <div class="post-card-header">
+        <span class="post-tag">${esc(p.category || 'Essay')}</span>
+        <h3>${esc(p.title)}</h3>
+      </div>
+      <div class="post-card-body">
+        <div class="post-excerpt">${esc(p.content)}</div>
+        <div class="post-meta">
+          <div class="post-meta-left">
+            <div class="meta-avatar">${p.authorName[0]}</div>
+            <span>${esc(p.authorName)}</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px">
+            <span class="comment-count">💬 ${count}</span>
+            <span>${timeAgo(p.createdAt)}</span>
+          </div>
+        </div>
+        ${isOwner ? `<div class="post-actions" onclick="event.stopPropagation()">
+          <button class="btn btn-secondary btn-sm" onclick="startEdit('${p.id}')">Edit</button>
+          <button class="btn btn-danger" onclick="deletePost('${p.id}')">Delete</button>
+        </div>` : ''}
+      </div>
+    </div>
+  `;
+}
+
+function renderPostDetail(postId) {
+  const posts = DB.getPosts();
+  const post = posts.find(p => p.id === postId);
+  if (!post) return;
+
+  const isOwner = currentUser && post.authorId === currentUser.id;
+  const comments = DB.getComments().filter(c => c.postId === postId);
+
+  document.getElementById('postDetailContent').innerHTML = `
+    <span class="post-tag" style="margin-bottom:16px;display:inline-block">${esc(post.category || 'Essay')}</span>
+    <h1>${esc(post.title)}</h1>
+    <div class="post-detail-meta">
+      <div class="avatar">${post.authorName[0]}</div>
+      <div>
+        <div class="author-name">${esc(post.authorName)}</div>
+        <div>${timeAgo(post.createdAt)}${post.updatedAt ? ' · edited' : ''}</div>
+      </div>
+      <span class="comment-count" style="margin-left:auto">💬 ${comments.length} comment${comments.length !== 1 ? 's' : ''}</span>
+    </div>
+    <div class="post-body">${esc(post.content)}</div>
+    ${isOwner ? `<div class="post-detail-actions">
+      <button class="btn btn-secondary" onclick="startEdit('${post.id}')">✏️ Edit</button>
+      <button class="btn btn-danger" onclick="deletePost('${post.id}')">🗑 Delete</button>
+    </div>` : ''}
+    <div class="comments-section">
+      <h3>Discussion (${comments.length})</h3>
+      ${currentUser ? `
+        <div class="comment-form">
+          <h4>Add your thoughts</h4>
+          <div class="form-group">
+            <textarea id="commentInput" placeholder="Share your perspective…" style="min-height:80px;background:white"></textarea>
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="addComment('${post.id}')">Post Comment</button>
+        </div>
+      ` : `<div style="background:var(--cream);border-radius:8px;padding:16px;text-align:center;margin-bottom:24px;font-size:0.875rem;color:var(--muted)">
+        <a onclick="showAuthModal('login')" style="color:var(--rust);cursor:pointer;font-weight:600">Sign in</a> to join the discussion
+      </div>`}
+      <div class="comment-list" id="commentList"></div>
+    </div>
+  `;
+  renderComments(postId);
+}
+
+function showProfile() {
+  if (!currentUser) return;
+  const posts = DB.getPosts().filter(p => p.authorId === currentUser.id);
+  const comments = DB.getComments();
+  const totalComments = comments.filter(c => posts.some(p => p.id === c.postId)).length;
+
+  document.getElementById('profileContent').innerHTML = `
+    <div class="profile-header">
+      <div class="profile-avatar">${currentUser.name[0]}</div>
+      <div class="profile-info">
+        <h2>${esc(currentUser.name)}</h2>
+        <p>@${esc(currentUser.username)}</p>
+        <div class="profile-stats">
+          <div class="stat"><div class="num">${posts.length}</div><div class="lbl">Posts</div></div>
+          <div class="stat"><div class="num">${totalComments}</div><div class="lbl">Comments Received</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="profile-posts">
+      <h3>Your Posts</h3>
+      ${posts.length === 0
+        ? `<div class="empty-state"><div class="icon">📄</div><h3>No posts yet</h3><p>Start writing your first story.</p><button class="btn btn-primary" style="margin-top:16px" onclick="showPage('pageCreate')">Write Now</button></div>`
+        : posts.map(p => `
+          <div class="profile-post-row">
+            <div>
+              <div class="profile-post-title" onclick="openPost('${p.id}')">${esc(p.title)}</div>
+              <div class="profile-post-date">${esc(p.category)} · ${timeAgo(p.createdAt)} · ${comments.filter(c => c.postId === p.id).length} comments</div>
+            </div>
+            <div class="profile-post-actions">
+              <button class="btn btn-secondary btn-sm" onclick="startEdit('${p.id}')">Edit</button>
+              <button class="btn btn-danger" onclick="deletePost('${p.id}')">Del</button>
+            </div>
+          </div>
+        `).join('')
+      }
+    </div>
+  `;
+  showPage('pageProfile');
+}
+
+// ══════════════════════════════════════════════
+//  NAVIGATION
+// ══════════════════════════════════════════════
+let currentPage = 'pageHome';
+let lastDetailPostId = null;
+
+function showPage(pageId) {
+  previousPage = currentPage;
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById(pageId).classList.add('active');
+  currentPage = pageId;
+  window.scrollTo(0, 0);
+}
+
+function openPost(postId) {
+  lastDetailPostId = postId;
+  showPage('pageDetail');
+  renderPostDetail(postId);
+}
+
+function goBack() {
+  const pg = previousPage || (currentUser ? 'pageFeed' : 'pageHome');
+  showPage(pg);
+  if (pg === 'pageFeed') renderAuthFeed();
+  else if (pg === 'pageHome') renderHomeFeed();
+}
+
+function scrollToFeed() {
+  document.getElementById('feedSection').scrollIntoView({ behavior: 'smooth' });
+}
+
+// ══════════════════════════════════════════════
+//  UI HELPERS
+// ══════════════════════════════════════════════
+function showAuthModal(mode) {
+  document.getElementById('authModal').classList.add('open');
+  toggleAuthForm(mode);
+}
+function closeAuthModal() { document.getElementById('authModal').classList.remove('open'); }
+function toggleAuthForm(mode) {
+  document.getElementById('loginForm').style.display = mode === 'login' ? 'block' : 'none';
+  document.getElementById('registerForm').style.display = mode === 'register' ? 'block' : 'none';
+  document.getElementById('loginError').classList.remove('show');
+  document.getElementById('registerError').classList.remove('show');
+}
+function showError(el, msg) { el.textContent = msg; el.classList.add('show'); }
+
+document.getElementById('authModal').addEventListener('click', function(e) {
+  if (e.target === this) closeAuthModal();
+});
+
+let toastTimer;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+function esc(str) {
+  if (!str) return '';
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function timeAgo(iso) {
+  const d = new Date(iso);
+  const now = new Date();
+  const s = Math.floor((now - d) / 1000);
+  if (s < 60) return 'just now';
+  if (s < 3600) return Math.floor(s/60) + 'm ago';
+  if (s < 86400) return Math.floor(s/3600) + 'h ago';
+  if (s < 604800) return Math.floor(s/86400) + 'd ago';
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
+
+// ── INIT ──
+initApp();
+</script>
+</body>
+</html>
